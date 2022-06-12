@@ -77,19 +77,33 @@ const paint = (keyStroke, paintBrush) => {
   set(paintBrush);
 };
 
-const main = () => {
+const isKeyValid = (key) => 'aswdq'.includes(key);
+
+const moveBrush = (key, paintBrush) => {
+  if (key === 'q') {
+    resetScreen();
+    exit();
+  }
+  paint(key, paintBrush);
+};
+
+const setupCanvas = () => {
   const [maxX, maxY] = stdout.getWindowSize();
   setupScreen();
   const paintBrush = new Brush({ x: 60, y: 20, maxX, maxY });
   set(paintBrush);
+  return paintBrush;
+};
+
+const main = () => {
+  const paintBrush = setupCanvas();
   stdin.setRawMode(true);
   stdin.setEncoding('utf8');
   stdin.on('data', (key) => {
-    if (key === 'q') {
-      resetScreen();
-      exit();
+    if (!isKeyValid(key)) {
+      return;
     }
-    paint(key, paintBrush);
+    moveBrush(key, paintBrush);
   });
 };
 
