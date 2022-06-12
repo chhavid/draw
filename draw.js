@@ -21,13 +21,26 @@ class Brush {
     this.y = y;
     this.maxX = maxX;
     this.maxY = maxY;
-    this.color = 'cyan';
+    this.color = 'magenta';
+  }
+
+  #isXOutOfScreen() {
+    return this.x >= this.maxX || this.x < 0;
+  }
+  #isYOutOfScreen() {
+    return this.y >= this.maxY || this.y < 0;
   }
 
   move(direction) {
     const { dx, dy } = getDelta(direction);
     this.x += dx;
     this.y += dy;
+    if (this.#isXOutOfScreen()) {
+      this.x -= dx;
+    }
+    if (this.#isYOutOfScreen()) {
+      this.y -= dy;
+    }
   }
 
   visit(brushVisitor) {
@@ -90,7 +103,7 @@ const moveBrush = (key, paintBrush) => {
 const setupCanvas = () => {
   const [maxX, maxY] = stdout.getWindowSize();
   setupScreen();
-  const paintBrush = new Brush({ x: 60, y: 20, maxX, maxY });
+  const paintBrush = new Brush({ x: 60, y: 20, maxX, maxY: maxY - 1 });
   set(paintBrush);
   return paintBrush;
 };
