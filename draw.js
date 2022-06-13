@@ -1,67 +1,15 @@
-const { stdout, stdin } = process;
+const { stdout, stdin, exit } = require('process');
 const chalk = require('chalk');
-const { exit } = require('process');
+const { EventEmitter } = require('events');
+const { Brush } = require('./brush.js');
 
 const BRUSH = '🖌\n', HIDDEN_CURSOR = '\x1B[?25l',
   VISIBLE_CURSOR = '\x1B[?25h';
 
-const getDelta = (direction) => {
-  const movements = {
-    d: { dx: 2, dy: 0 },
-    a: { dx: -2, dy: 0 },
-    w: { dx: 0, dy: -1 },
-    s: { dx: 0, dy: 1 },
-  };
-  return movements[direction];
-};
-
-class Brush {
-  constructor({ x, y, maxX, maxY }) {
-    this.x = x;
-    this.y = y;
-    this.maxX = maxX;
-    this.maxY = maxY;
-    this.color = 'magenta';
-  }
-
-  #isXOutOfScreen() {
-    return this.x >= this.maxX || this.x < 0;
-  }
-  #isYOutOfScreen() {
-    return this.y >= this.maxY || this.y < 0;
-  }
-
-  move(direction) {
-    const { dx, dy } = getDelta(direction);
-    this.x += dx;
-    this.y += dy;
-    if (this.#isXOutOfScreen()) {
-      this.x -= dx;
-    }
-    if (this.#isYOutOfScreen()) {
-      this.y -= dy;
-    }
-  }
-
-  visit(brushVisitor) {
-    brushVisitor(this.x, this.y, this.color);
-  }
-
-  changeColor(color) {
-    const colors = {
-      r: 'red',
-      b: 'cyan',
-      g: 'green',
-      v: 'magenta'
-    };
-    this.color = colors[color];
-  }
-}
-
 const draw = (brush) => {
-  brush.visit((x, y, color) => {
+  brush.visit((x, y, color, filler) => {
     stdout.cursorTo(x, y);
-    stdout.write(chalk[color]('*'));
+    stdout.write(chalk[color](filler));
   });
 };
 
@@ -90,14 +38,19 @@ const paint = (keyStroke, paintBrush) => {
   set(paintBrush);
 };
 
-const isKeyValid = (key) => 'aswdq'.includes(key);
+const isKeyValid = (key) => 'aswdqpha'.includes(key);
 
-const moveBrush = (key, paintBrush) => {
-  if (key === 'q') {
+const setModes = (modes, paintBrush) => {
+  modes.on('q', () => {
     resetScreen();
     exit();
-  }
-  paint(key, paintBrush);
+  });
+  modes.on('p', () => paintBrush.setPaintMode());
+  modes.on('h', () => paintBrush.unsetPaintMode());
+  modes.on('w', () => paint('w', paintBrush));
+  modes.on('a', () => paint('a', paintBrush));
+  modes.on('s', () => paint('s', paintBrush));
+  modes.on('d', () => paint('d', paintBrush));
 };
 
 const setupCanvas = () => {
@@ -105,18 +58,20 @@ const setupCanvas = () => {
   setupScreen();
   const paintBrush = new Brush({ x: 60, y: 20, maxX, maxY: maxY - 1 });
   set(paintBrush);
-  return paintBrush;
+  const modes = new EventEmitter();
+  setModes(modes, paintBrush);
+  return modes;
 };
 
 const main = () => {
-  const paintBrush = setupCanvas();
+  const modes = setupCanvas();
   stdin.setRawMode(true);
   stdin.setEncoding('utf8');
   stdin.on('data', (key) => {
     if (!isKeyValid(key)) {
       return;
     }
-    moveBrush(key, paintBrush);
+    modes.emit(key);
   });
 };
 
