@@ -9,57 +9,65 @@ const getDelta = (direction) => {
 };
 
 class Brush {
+  #x;
+  #y;
+  #maxX;
+  #maxY;
+  #color;
+  #filler;
+  #colorFlag;
+
   constructor({ x, y, maxX, maxY }) {
-    this.x = x;
-    this.y = y;
-    this.maxX = maxX;
-    this.maxY = maxY;
-    this.color = 'cyan';
-    this.filler = ' ';
-    this.colorFlag = false;
+    this.#x = x;
+    this.#y = y;
+    this.#maxX = maxX;
+    this.#maxY = maxY;
+    this.#color = 'cyan';
+    this.#filler = ' ';
+    this.#colorFlag = false;
   }
 
   #isXOutOfScreen() {
-    return this.x >= this.maxX || this.x < 0;
+    return this.#x >= this.#maxX || this.#x < 0;
   }
   #isYOutOfScreen() {
-    return this.y >= this.maxY || this.y < 0;
+    return this.#y >= this.#maxY || this.#y < 0;
   }
 
   move(direction) {
     const { dx, dy } = getDelta(direction);
-    this.x += dx;
-    this.y += dy;
+    this.#x += dx;
+    this.#y += dy;
     if (this.#isXOutOfScreen()) {
-      this.x -= dx;
+      this.#x -= dx;
     }
     if (this.#isYOutOfScreen()) {
-      this.y -= dy;
+      this.#y -= dy;
     }
   }
 
   visit(brushVisitor) {
-    brushVisitor(this.x, this.y, this.color, this.filler);
+    brushVisitor(this.#x, this.#y, this.#color, this.#filler);
   }
 
   setPaintMode() {
-    this.filler = '*';
+    this.#filler = '*';
   }
 
   unsetPaintMode() {
-    this.filler = ' ';
+    this.#filler = ' ';
   }
 
   setColorFlag() {
-    this.colorFlag = true;
+    this.#colorFlag = true;
   }
 
-  unsetColorFlag() {
-    this.colorFlag = false;
+  #unsetColorFlag() {
+    this.#colorFlag = false;
   }
 
   changeColor(color) {
-    if (!this.colorFlag) {
+    if (!this.#colorFlag) {
       return;
     }
     const colors = {
@@ -69,9 +77,9 @@ class Brush {
       m: 'magenta',
       y: 'yellow'
     };
-    this.color = colors[color];
-    this.unsetColorFlag();
+    this.#color = colors[color];
+    this.#unsetColorFlag();
   }
 }
 
-exports.Brush = Brush;
+module.exports = { Brush };
