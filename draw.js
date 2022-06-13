@@ -38,7 +38,19 @@ const paint = (keyStroke, paintBrush) => {
   set(paintBrush);
 };
 
-const isKeyValid = (key) => 'aswdqpha'.includes(key);
+const isKeyValid = (key) => 'aswdqphcrgbym'.includes(key);
+
+const setColors = (modes, paintBrush) => {
+  ['r', 'g', 'b', 'y', 'm'].forEach((color) => {
+    modes.on(color, () => paintBrush.changeColor(color));
+  });
+};
+
+const setMoves = (modes, paintBrush) => {
+  ['a', 'w', 's', 'd'].forEach((move) => {
+    modes.on(move, () => paint(move, paintBrush));
+  });
+};
 
 const setModes = (modes, paintBrush) => {
   modes.on('q', () => {
@@ -47,10 +59,9 @@ const setModes = (modes, paintBrush) => {
   });
   modes.on('p', () => paintBrush.setPaintMode());
   modes.on('h', () => paintBrush.unsetPaintMode());
-  modes.on('w', () => paint('w', paintBrush));
-  modes.on('a', () => paint('a', paintBrush));
-  modes.on('s', () => paint('s', paintBrush));
-  modes.on('d', () => paint('d', paintBrush));
+  modes.on('c', () => paintBrush.setColorFlag());
+  setColors(modes, paintBrush);
+  setMoves(modes, paintBrush);
 };
 
 const setupCanvas = () => {

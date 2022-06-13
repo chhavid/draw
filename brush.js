@@ -16,6 +16,7 @@ class Brush {
     this.maxY = maxY;
     this.color = 'cyan';
     this.filler = ' ';
+    this.colorFlag = false;
   }
 
   #isXOutOfScreen() {
@@ -49,14 +50,28 @@ class Brush {
     this.filler = ' ';
   }
 
+  setColorFlag() {
+    this.colorFlag = true;
+  }
+
+  unsetColorFlag() {
+    this.colorFlag = false;
+  }
+
   changeColor(color) {
+    if (!this.colorFlag) {
+      return;
+    }
     const colors = {
       r: 'red',
       b: 'cyan',
       g: 'green',
-      v: 'magenta'
+      m: 'magenta',
+      y: 'yellow'
     };
     this.color = colors[color];
+    this.unsetColorFlag();
   }
 }
+
 exports.Brush = Brush;
